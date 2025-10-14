@@ -13,7 +13,7 @@
     "test:e2e:headed": "playwright test --headed",
     "test:e2e:debug": "playwright test --debug",
     "test:e2e:report": "playwright show-report",
-    "test:coverage": "nyc playwright test"
+    "test:coverage": "nyc --reporter=json-summary --reporter=text playwright test"
   },
   "devDependencies": {
     "@playwright/test": "^1.56.0",

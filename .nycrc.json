@@ -3,6 +3,5 @@
   "branches": 0,
   "lines": 80,
   "functions": 0,
-  "statements": 0,
-  "reporter": ["html", "text-summary"]
+  "statements": 0
 }

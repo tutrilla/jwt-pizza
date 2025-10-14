@@ -462,8 +462,6 @@ test("admin dashboard", async ({ page }) => {
   await page.waitForTimeout(500);
   await expect(page.locator("h2")).toContainText("Mama Ricci's kitchen");
 
-  page.on("console", (msg) => console.log("PAGE LOG:", msg.text()));
-
   await page
     .getByRole("row", { name: "LotaPizza" })
     .getByRole("button")

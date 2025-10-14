@@ -184,7 +184,6 @@ async function basicInit(page: Page) {
   await page.route("*/**/api/franchise**", async (route) => {
     const url = route.request().url();
     const method = route.request().method();
-    console.log("[ROUTE]", method, url);
 
     // POST create franchise: /api/franchise
     if (method === "POST" && url.match(/\/api\/franchise(\?.*)?$/)) {

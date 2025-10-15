@@ -226,13 +226,9 @@ async function basicInit(page: Page) {
       const franchiseId = Number(matches![1]);
       const storeId = Number(matches![2]);
 
-      console.log("DELETE store:", { franchiseId, storeId });
-
       const franchise = franchises.find((f) => f.id === franchiseId);
       if (franchise) {
-        console.log("Before delete:", franchise.stores);
         franchise.stores = franchise.stores.filter((s) => s.id !== storeId);
-        console.log("After delete:", franchise.stores);
       }
 
       await route.fulfill({ status: 200, json: { message: "store deleted" } });
@@ -278,7 +274,6 @@ async function basicInit(page: Page) {
 
     // GET user franchises: /api/franchise/:userId
     if (method === "GET" && url.match(/\/api\/franchise\/\d+$/)) {
-      const userId = url.split("/").pop();
 
       // Return franchises for the user
       const userFranchises = loggedInUser?.roles.find(

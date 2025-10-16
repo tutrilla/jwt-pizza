@@ -1,0 +1,17 @@
+// vite.config.js
+import { defineConfig } from "file:///C:/Users/thoma/OneDrive/Desktop/CS%20329/Projects/jwt-pizza/node_modules/vite/dist/node/index.js";
+import istanbul from "file:///C:/Users/thoma/OneDrive/Desktop/CS%20329/Projects/jwt-pizza/node_modules/vite-plugin-istanbul/dist/index.mjs";
+var vite_config_default = defineConfig({
+  build: { sourcemap: true },
+  plugins: [
+    istanbul({
+      include: ["src/**/*"],
+      exclude: ["node_modules"],
+      requireEnv: false
+    })
+  ]
+});
+export {
+  vite_config_default as default
+};
+//# sourceMappingURL=data:application/json;base64,ewogICJ2ZXJzaW9uIjogMywKICAic291cmNlcyI6IFsidml0ZS5jb25maWcuanMiXSwKICAic291cmNlc0NvbnRlbnQiOiBbImNvbnN0IF9fdml0ZV9pbmplY3RlZF9vcmlnaW5hbF9kaXJuYW1lID0gXCJDOlxcXFxVc2Vyc1xcXFx0aG9tYVxcXFxPbmVEcml2ZVxcXFxEZXNrdG9wXFxcXENTIDMyOVxcXFxQcm9qZWN0c1xcXFxqd3QtcGl6emFcIjtjb25zdCBfX3ZpdGVfaW5qZWN0ZWRfb3JpZ2luYWxfZmlsZW5hbWUgPSBcIkM6XFxcXFVzZXJzXFxcXHRob21hXFxcXE9uZURyaXZlXFxcXERlc2t0b3BcXFxcQ1MgMzI5XFxcXFByb2plY3RzXFxcXGp3dC1waXp6YVxcXFx2aXRlLmNvbmZpZy5qc1wiO2NvbnN0IF9fdml0ZV9pbmplY3RlZF9vcmlnaW5hbF9pbXBvcnRfbWV0YV91cmwgPSBcImZpbGU6Ly8vQzovVXNlcnMvdGhvbWEvT25lRHJpdmUvRGVza3RvcC9DUyUyMDMyOS9Qcm9qZWN0cy9qd3QtcGl6emEvdml0ZS5jb25maWcuanNcIjtpbXBvcnQgeyBkZWZpbmVDb25maWcgfSBmcm9tICd2aXRlJztcclxuaW1wb3J0IGlzdGFuYnVsIGZyb20gJ3ZpdGUtcGx1Z2luLWlzdGFuYnVsJztcclxuXHJcbmV4cG9ydCBkZWZhdWx0IGRlZmluZUNvbmZpZyh7XHJcbiAgYnVpbGQ6IHsgc291cmNlbWFwOiB0cnVlIH0sXHJcbiAgcGx1Z2luczogW1xyXG4gICAgaXN0YW5idWwoe1xyXG4gICAgICBpbmNsdWRlOiBbJ3NyYy8qKi8qJ10sXHJcbiAgICAgIGV4Y2x1ZGU6IFsnbm9kZV9tb2R1bGVzJ10sXHJcbiAgICAgIHJlcXVpcmVFbnY6IGZhbHNlLFxyXG4gICAgfSksXHJcbiAgXSxcclxufSk7Il0sCiAgIm1hcHBpbmdzIjogIjtBQUErVyxTQUFTLG9CQUFvQjtBQUM1WSxPQUFPLGNBQWM7QUFFckIsSUFBTyxzQkFBUSxhQUFhO0FBQUEsRUFDMUIsT0FBTyxFQUFFLFdBQVcsS0FBSztBQUFBLEVBQ3pCLFNBQVM7QUFBQSxJQUNQLFNBQVM7QUFBQSxNQUNQLFNBQVMsQ0FBQyxVQUFVO0FBQUEsTUFDcEIsU0FBUyxDQUFDLGNBQWM7QUFBQSxNQUN4QixZQUFZO0FBQUEsSUFDZCxDQUFDO0FBQUEsRUFDSDtBQUNGLENBQUM7IiwKICAibmFtZXMiOiBbXQp9Cg==

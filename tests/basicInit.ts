@@ -1,5 +1,6 @@
 import { expect } from "playwright-test-coverage";
 import { Page } from "@playwright/test";
+import { validUsers } from "./validUsers";
 
 interface User {
   id: string;
@@ -17,22 +18,6 @@ enum Role {
 
 export async function basicInit(page: Page) {
   let loggedInUser: User | undefined;
-  const validUsers: Record<string, User> = {
-    "d@jwt.com": {
-      id: "3",
-      name: "Kai Chen",
-      email: "d@jwt.com",
-      password: "a",
-      roles: [{ role: Role.Diner }],
-    },
-    "a@jwt.com": {
-      id: "1",
-      name: "Admin User",
-      email: "a@jwt.com",
-      password: "admin",
-      roles: [{ role: Role.Admin }],
-    },
-  };
 
   // Track franchises and stores
   let franchises = [
@@ -68,13 +53,12 @@ export async function basicInit(page: Page) {
 
   let nextFranchiseId = 5;
   let nextStoreId = 8;
+  let nextUserId = 15;
 
   // See all route requests
-  // await page.route("**/*", async (route) => {
-  //   const request = route.request();
-  //   console.log("ALL REQUESTS:", request.method(), request.url());
-  //   await route.continue();
-  // });
+//   page.on("request", (r) => {
+//     console.log("ALL REQUESTS:", r.method(), r.url());
+//   });
 
   // User registration, login, logout
   await page.route("*/**/api/auth", async (route) => {
@@ -94,7 +78,7 @@ export async function basicInit(page: Page) {
 
       // Create new user
       const newUser: User = {
-        id: String(Object.keys(validUsers).length + 1),
+        id: String(nextUserId++),
         name,
         email,
         password,
@@ -123,16 +107,22 @@ export async function basicInit(page: Page) {
       // Login existing user
       const loginReq = route.request().postDataJSON();
       const user = validUsers[loginReq.email];
+
       if (!user || user.password !== loginReq.password) {
         await route.fulfill({ status: 401, json: { error: "Unauthorized" } });
         return;
       }
-      loggedInUser = validUsers[loginReq.email];
+      loggedInUser = user;
       const loginRes = {
-        user: loggedInUser,
+        user: {
+          id: user.id,
+          name: user.name,
+          email: user.email,
+          roles: user.roles,
+        },
         token: "abcdef",
       };
-      await route.fulfill({ json: loginRes });
+      await route.fulfill({ status: 200, json: loginRes });
       return;
     }
 
@@ -155,7 +145,155 @@ export async function basicInit(page: Page) {
   // Return the currently logged in user
   await page.route("*/**/api/user/me", async (route) => {
     expect(route.request().method()).toBe("GET");
-    await route.fulfill({ json: loggedInUser });
+    await route.fulfill({ status: 200, json: loggedInUser });
+  });
+
+  // User management routes
+  await page.route("*/**/api/user**", async (route) => {
+    const url = route.request().url();
+    const method = route.request().method();
+
+    // Skip if it's /api/user/me
+    if (url.includes("/me")) {
+      await route.continue();
+      return;
+    }
+
+    // GET list users: /api/user?page=0&limit=10&name=*
+    if (method === "GET" && url.match(/\/api\/user(\?.*)?$/)) {
+      // Only admins can list users
+      if (!loggedInUser?.roles.find((r) => r.role === Role.Admin)) {
+        await route.fulfill({
+          status: 403,
+          json: { message: "unauthorized" },
+        });
+        return;
+      }
+
+      // Parse query params
+      const urlObj = new URL(url);
+      const page = parseInt(urlObj.searchParams.get("page") || "0");
+      const limit = parseInt(urlObj.searchParams.get("limit") || "10");
+      const nameFilter = urlObj.searchParams.get("name") || "*";
+
+      // Filter users by name
+      let users = Object.values(validUsers);
+      if (nameFilter !== "*") {
+        const filter = nameFilter.replace(/\*/g, "");
+        users = users.filter((u) =>
+          u.name.toLowerCase().includes(filter.toLowerCase())
+        );
+      }
+
+      // Paginate
+      const start = page * limit;
+      const end = start + limit;
+      const paginatedUsers = users.slice(start, end + 1);
+      const more = paginatedUsers.length > limit;
+
+      const userList = {
+        users: paginatedUsers.slice(0, limit).map((u) => ({
+          id: u.id,
+          name: u.name,
+          email: u.email,
+          roles: u.roles,
+        })),
+        more,
+      };
+
+      await route.fulfill({ status: 200, json: userList });
+      return;
+    }
+
+    // DELETE user: /api/user/:userId
+    if (method === "DELETE" && url.match(/\/api\/user\/\d+$/)) {
+      // Only admins can delete users
+      if (!loggedInUser?.roles.find((r) => r.role === Role.Admin)) {
+        await route.fulfill({
+          status: 403,
+          json: { message: "unauthorized" },
+        });
+        return;
+      }
+
+      const userId = url.split("/").pop();
+
+      // Find and remove user
+      const userEmail = Object.keys(validUsers).find(
+        (email) => validUsers[email].id === userId
+      );
+
+      if (userEmail) {
+        delete validUsers[userEmail];
+      }
+
+      await route.fulfill({ status: 200, json: {} });
+      return;
+    }
+
+    // PUT update user: /api/user/:userId
+    if (method === "PUT" && url.match(/\/api\/user\/\d+$/)) {
+      const userId = url.split("/").pop();
+      const updateReq = route.request().postDataJSON();
+
+      // Find user
+      const userEmail = Object.keys(validUsers).find(
+        (email) => validUsers[email].id === userId
+      );
+
+      if (!userEmail) {
+        await route.fulfill({
+          status: 404,
+          json: { message: "user not found" },
+        });
+        return;
+      }
+
+      const user = validUsers[userEmail];
+
+      // Only the user themselves or an admin can update
+      if (
+        loggedInUser?.id !== userId &&
+        !loggedInUser?.roles.find((r) => r.role === Role.Admin)
+      ) {
+        await route.fulfill({
+          status: 403,
+          json: { message: "unauthorized" },
+        });
+        return;
+      }
+
+      // Update user fields
+      if (updateReq.name) user.name = updateReq.name;
+      if (updateReq.email) {
+        // Update the key in validUsers
+        delete validUsers[userEmail];
+        validUsers[updateReq.email] = user;
+        user.email = updateReq.email;
+      }
+      if (updateReq.password) user.password = updateReq.password;
+
+      // Update logged in user if it's them
+      if (loggedInUser?.id === userId) {
+        loggedInUser = user;
+      }
+
+      const updateRes = {
+        user: {
+          id: user.id,
+          name: user.name,
+          email: user.email,
+          roles: user.roles,
+        },
+        token: "abcdef",
+      };
+
+      await route.fulfill({ status: 200, json: updateRes });
+      return;
+    }
+
+    // If no route matched, continue
+    await route.continue();
   });
 
   // A standard menu
@@ -274,7 +412,6 @@ export async function basicInit(page: Page) {
 
     // GET user franchises: /api/franchise/:userId
     if (method === "GET" && url.match(/\/api\/franchise\/\d+$/)) {
-
       // Return franchises for the user
       const userFranchises = loggedInUser?.roles.find(
         (r) => r.role === Role.Admin
@@ -296,7 +433,7 @@ export async function basicInit(page: Page) {
     const method = route.request().method();
 
     // Skip if menu
-    if (url.includes('/menu')) {
+    if (url.includes("/menu")) {
       await route.continue();
       return;
     }
@@ -313,11 +450,11 @@ export async function basicInit(page: Page) {
             date: "2024-10-10T12:00:00.000Z",
             items: [
               { menuId: 1, description: "Veggie", price: 0.0038 },
-              { menuId: 2, description: "Pepperoni", price: 0.0042 }
-            ]
-          }
+              { menuId: 2, description: "Pepperoni", price: 0.0042 },
+            ],
+          },
         ],
-        page: 1
+        page: 1,
       };
       await route.fulfill({ status: 200, json: orderHistoryRes });
       return;

@@ -30,10 +30,19 @@ test("purchase with login", async ({ page }) => {
   await page.getByPlaceholder("Email address").fill("d@jwt.com");
   await page.getByPlaceholder("Email address").press("Tab");
   await page.getByPlaceholder("Password").fill("a");
-  await page.getByRole("button", { name: "Login" }).click();
+
+  // Click login and wait for navigation
+  await Promise.all([
+    page.waitForResponse(response => 
+      response.url().includes('/api/auth') && response.status() === 200
+    ),
+    page.getByRole("button", { name: "Login" }).click()
+  ]);
+
+  // Wait
+  await page.waitForTimeout(500);
 
   // Pay
-  await page.waitForSelector('text=Send me those 2 pizzas right now!', { timeout: 10000 });
   await expect(page.getByRole("main")).toContainText(
     "Send me those 2 pizzas right now!"
   );

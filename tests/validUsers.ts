@@ -12,7 +12,7 @@ enum Role {
   Admin = "admin",
 }
 
-export const validUsers: Record<string, User> = {
+export const initialValidUsers: Record<string, User> = {
   "d@jwt.com": {
     id: "3",
     name: "Kai Chen",
@@ -100,3 +100,5 @@ export const validUsers: Record<string, User> = {
     roles: [{ role: Role.Diner }],
   },
 };
+
+export { User, Role };

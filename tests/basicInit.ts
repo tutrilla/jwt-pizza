@@ -1,23 +1,10 @@
 import { expect } from "playwright-test-coverage";
 import { Page } from "@playwright/test";
-import { validUsers } from "./validUsers";
-
-interface User {
-  id: string;
-  name: string;
-  email: string;
-  password: string;
-  roles: Array<{ role: Role }>;
-}
-
-enum Role {
-  Diner = "diner",
-  Franchisee = "franchisee",
-  Admin = "admin",
-}
+import { initialValidUsers, User, Role } from "./validUsers";
 
 export async function basicInit(page: Page) {
   let loggedInUser: User | undefined;
+  let validUsers: Record<string, User> = JSON.parse(JSON.stringify(initialValidUsers));
 
   // Track franchises and stores
   let franchises = [

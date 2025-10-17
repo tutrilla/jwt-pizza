@@ -130,19 +130,19 @@ export async function basicInit(page: Page) {
   });
 
   // Return the currently logged in user
-  await page.route("*/**/api/user/me", async (route) => {
-    expect(route.request().method()).toBe("GET");
-    await route.fulfill({ status: 200, json: loggedInUser });
-  });
+//   await page.route("*/**/api/user/me", async (route) => {
+//     expect(route.request().method()).toBe("GET");
+//     await route.fulfill({ status: 200, json: loggedInUser });
+//   });
 
   // User management routes
   await page.route("*/**/api/user**", async (route) => {
     const url = route.request().url();
     const method = route.request().method();
 
-    // Skip if it's /api/user/me
-    if (url.includes("/me")) {
-      await route.continue();
+    // /api/user/me
+    if (url.includes("/me") && method === "GET") {
+      await route.fulfill({ status: 200, json: loggedInUser });
       return;
     }
 

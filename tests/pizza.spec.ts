@@ -33,6 +33,7 @@ test("purchase with login", async ({ page }) => {
   await page.getByRole("button", { name: "Login" }).click();
 
   // Pay
+  await page.waitForSelector('text=Send me those 2 pizzas right now!', { timeout: 10000 });
   await expect(page.getByRole("main")).toContainText(
     "Send me those 2 pizzas right now!"
   );
